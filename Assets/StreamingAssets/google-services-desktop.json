@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "184952139614",
+    "firebase_url": "https://matchmakingsid-1a8c0-default-rtdb.firebaseio.com",
+    "project_id": "matchmakingsid-1a8c0",
+    "storage_bucket": "matchmakingsid-1a8c0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184952139614:android:fc1ce421c965d140ff29cf",
+        "android_client_info": {
+          "package_name": "com.SIDClass.Matchmaking"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeOZHiqqpoZxZ4213tpD7IN0uQP0j8vTw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
