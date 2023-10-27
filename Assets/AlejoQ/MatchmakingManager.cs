@@ -129,15 +129,23 @@ public class MatchmakingManager : MonoBehaviour
 
         reference.Child("looking_for_match").Child(currentPlayerID).RemoveValueAsync();
         reference.Child("looking_for_match").Child(opponentPlayerID).RemoveValueAsync();
-        matchRef.UpdateChildrenAsync(matchData);
-        OnMatchFound?.Invoke(opponentPlayerID, currentPlayerID, uniqueMatchID);
-        matchRef.ChildRemoved += HandleGameExit;
-        DatabaseReference player = FirebaseDatabase.DefaultInstance.GetReference("users").Child(currentPlayerID);
-        DatabaseReference oponent = FirebaseDatabase.DefaultInstance.GetReference("users").Child(opponentPlayerID);
-
-        player.Child("current_match").SetValueAsync(uniqueMatchID);
-        oponent.Child("current_match").SetValueAsync(uniqueMatchID);
-
+        matchRef.UpdateChildrenAsync(matchData).ContinueWithOnMainThread(task=>
+            {
+                if (task.IsCompleted)
+                {
+                    OnMatchFound?.Invoke(opponentPlayerID, currentPlayerID, uniqueMatchID);
+                    matchRef.ChildRemoved += HandleGameExit;
+                    DatabaseReference player = FirebaseDatabase.DefaultInstance.GetReference("users").Child(currentPlayerID);
+                    DatabaseReference oponent = FirebaseDatabase.DefaultInstance.GetReference("users").Child(opponentPlayerID);
+                    player.Child("current_match").SetValueAsync(uniqueMatchID);
+                    oponent.Child("current_match").SetValueAsync(uniqueMatchID);
+                }
+                else if (task.IsFaulted)
+                {
+                    Debug.Log("couldnt create match");
+                }
+            }
+        );
     }
     public void ResetMatchIDs()
     {
