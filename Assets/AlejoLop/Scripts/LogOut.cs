@@ -1,4 +1,5 @@
 using Firebase.Auth;
+using Firebase.Database;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,6 +12,7 @@ public class LogOut : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData) {
         Debug.Log("Cerró Sesión");
         FirebaseAuth.DefaultInstance.SignOut();
+        FirebaseDatabase.DefaultInstance.RootReference.Child("users-online").Child(PlayerPrefs.GetString("ID")).RemoveValueAsync();
         SceneManager.LoadScene(sceneToLoad);
     }
 }

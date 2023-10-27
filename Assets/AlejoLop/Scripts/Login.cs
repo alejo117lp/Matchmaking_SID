@@ -1,4 +1,6 @@
 using Firebase.Auth;
+using Firebase.Database;
+using Firebase.Extensions;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -26,7 +28,7 @@ public class Login : MonoBehaviour
 
     private void HandleLoginButtonClicked() { 
         var auth = FirebaseAuth.DefaultInstance; 
-        auth.SignInWithEmailAndPasswordAsync(_emailInputField.text, _emailPasswordField.text).ContinueWith(task => { 
+        auth.SignInWithEmailAndPasswordAsync(_emailInputField.text, _emailPasswordField.text).ContinueWithOnMainThread(task => { 
             if (task.IsCanceled) { 
                 Debug.LogError("SignInWithEmailAndPasswordAsync was canceled."); 
                 return; 
@@ -39,4 +41,6 @@ public class Login : MonoBehaviour
             SceneManager.LoadScene(sceneToLoad);
         }); 
     }
+
+
 }

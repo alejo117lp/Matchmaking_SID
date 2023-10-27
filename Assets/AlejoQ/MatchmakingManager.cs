@@ -25,7 +25,6 @@ public class MatchmakingManager : MonoBehaviour
     public MatchExit OnMatchExit;
     private void Start()
     {
-        FirebaseApp.CheckAndFixDependenciesAsync();
         FirebaseApp app = FirebaseApp.DefaultInstance;
         reference = FirebaseDatabase.DefaultInstance.RootReference;
         auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
@@ -34,10 +33,6 @@ public class MatchmakingManager : MonoBehaviour
         if (user != null)
         {
             currentPlayerID = user.UserId;
-        }
-        else
-        {
-            currentPlayerID = "ccgfqdhQrYV7qj6GrA0cK5zObxQ2";
         }
     }
     /// <summary>
@@ -126,7 +121,6 @@ public class MatchmakingManager : MonoBehaviour
         matchData["status"] = "in_progress";
         matchData[currentPlayerID] = true;
         matchData[opponentPlayerID] = true;
-
         reference.Child("looking_for_match").Child(currentPlayerID).RemoveValueAsync();
         reference.Child("looking_for_match").Child(opponentPlayerID).RemoveValueAsync();
         matchRef.UpdateChildrenAsync(matchData).ContinueWithOnMainThread(task=>
