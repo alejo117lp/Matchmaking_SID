@@ -59,13 +59,14 @@ public class MatchInfoDiplay : MonoBehaviour
             else if (task.IsCompleted)
             {
                 userText.text = task.Result.Value.ToString();
-                Debug.Log("Username" + task.Result.Value.ToString());
+                
             }
         });
     }
     public void HandleExitMatch()
     {
         matchFoundPanel.SetActive(false);
+        
         GameObject[] array = GameObject.FindGameObjectsWithTag("InQueue");
         foreach(var item in array)
         {

@@ -16,7 +16,7 @@ public class MatchmakingManager : MonoBehaviour
     string currentOpponentID;
     string currentMatchID;
     bool isSubscribed = false;
-
+    bool isInMatch = false;
 
     public delegate void MatchFound(string oponentID, string userId, string matchID);
     public MatchFound OnMatchFound;
@@ -115,6 +115,7 @@ public class MatchmakingManager : MonoBehaviour
                 OnMatchFound?.Invoke(opponentID, currentPlayerID, uniqueMatchID);
                 matchRef.ChildRemoved += HandleGameExit;
             }
+            isInMatch = true;
         });
     }
     private void CreateMatch(string opponentPlayerID, string uniqueMatchID)
@@ -156,13 +157,14 @@ public class MatchmakingManager : MonoBehaviour
             lookingForMatchRef.ChildChanged -= HandleLookingForMatchAdded;
             isSubscribed = false;
         }
-        ExitMatch();
+        if(isInMatch) ExitMatch();
         lookingForMatchRef.Child(currentPlayerID).RemoveValueAsync();
     }
     public void ExitMatch()
     {
         if(currentMatchID != "")
         {
+            isInMatch = false;
             DatabaseReference MatchRef = reference.Child("matches").Child(currentMatchID);
             MatchRef.RemoveValueAsync();
             OnMatchExit?.Invoke();
@@ -170,6 +172,7 @@ public class MatchmakingManager : MonoBehaviour
     }
     private void HandleGameExit(object sender, ChildChangedEventArgs args)
     {
+        Debug.Log("Match exit ");
         ExitMatch();
         OnMatchExit?.Invoke();
     }
