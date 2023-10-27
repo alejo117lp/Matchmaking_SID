@@ -35,10 +35,6 @@ public class MatchmakingManager : MonoBehaviour
         {
             currentPlayerID = user.UserId;
         }
-        else
-        {
-            currentPlayerID = "ccgfqdhQrYV7qj6GrA0cK5zObxQ2";
-        }
     }
     /// <summary>
     /// Function to add the current user to the "looking_for_match" node and start playing for a match
@@ -126,7 +122,6 @@ public class MatchmakingManager : MonoBehaviour
         matchData["status"] = "in_progress";
         matchData[currentPlayerID] = true;
         matchData[opponentPlayerID] = true;
-
         reference.Child("looking_for_match").Child(currentPlayerID).RemoveValueAsync();
         reference.Child("looking_for_match").Child(opponentPlayerID).RemoveValueAsync();
         matchRef.UpdateChildrenAsync(matchData).ContinueWithOnMainThread(task=>
