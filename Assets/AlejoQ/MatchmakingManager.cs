@@ -25,7 +25,6 @@ public class MatchmakingManager : MonoBehaviour
     public MatchExit OnMatchExit;
     private void Start()
     {
-        FirebaseApp.CheckAndFixDependenciesAsync();
         FirebaseApp app = FirebaseApp.DefaultInstance;
         reference = FirebaseDatabase.DefaultInstance.RootReference;
         auth = Firebase.Auth.FirebaseAuth.DefaultInstance;
