@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Firebase.Auth;
+using Firebase.Extensions;
 using UnityEngine.Events;
 using System.Text.RegularExpressions;
 
@@ -12,6 +13,7 @@ public class MatchmakingManager : MonoBehaviour
     DatabaseReference reference;
     FirebaseAuth auth;
     string currentPlayerID;
+    string currentOpponentID;
     string currentMatchID;
     bool isSubscribed = false;
 
@@ -96,10 +98,11 @@ public class MatchmakingManager : MonoBehaviour
     /// </summary>
     public void CreateUniqueMatch(string opponentID)
     {
-        string uniqueMatchID = (IDCreator.ExtractID(currentPlayerID)+IDCreator.ExtractID(opponentID)).ToString();
+        string uniqueMatchID = (IDCreator.ExtractID(currentPlayerID) + IDCreator.ExtractID(opponentID)).ToString();
         currentMatchID = uniqueMatchID;
+        currentOpponentID = opponentID;
         DatabaseReference matchRef = reference.Child("matches").Child(uniqueMatchID);
-        matchRef.GetValueAsync().ContinueWith(task =>
+        matchRef.GetValueAsync().ContinueWithOnMainThread(task =>
         {
             if (task.IsCompleted && !task.Result.Exists)
             {
@@ -109,13 +112,12 @@ public class MatchmakingManager : MonoBehaviour
             else if (task.Result.Exists)
             {
                 Debug.Log("Match already exists with ID: " + uniqueMatchID);
-                //OnMatchFound?.Invoke(opponentID, currentPlayerID, uniqueMatchID);
-                matchInfoDiplay.UpdateMatchInfo(opponentID, currentPlayerID, uniqueMatchID);
+                OnMatchFound?.Invoke(opponentID, currentPlayerID, uniqueMatchID);
                 matchRef.ChildRemoved += HandleGameExit;
             }
         });
     }
-    private void CreateMatch(string opponentPlayerID,string uniqueMatchID)
+    private void CreateMatch(string opponentPlayerID, string uniqueMatchID)
     {
         DatabaseReference matchRef = reference.Child("matches").Child(uniqueMatchID);
         Dictionary<string, object> matchData = new Dictionary<string, object>();
@@ -127,8 +129,8 @@ public class MatchmakingManager : MonoBehaviour
         reference.Child("looking_for_match").Child(currentPlayerID).RemoveValueAsync();
         reference.Child("looking_for_match").Child(opponentPlayerID).RemoveValueAsync();
         matchRef.UpdateChildrenAsync(matchData);
-        //OnMatchFound?.Invoke(opponentPlayerID,currentPlayerID,uniqueMatchID);
-        matchInfoDiplay.UpdateMatchInfo(opponentPlayerID, currentPlayerID, uniqueMatchID);
+        OnMatchFound?.Invoke(opponentPlayerID, currentPlayerID, uniqueMatchID);
+        matchRef.ChildRemoved += HandleGameExit;
         DatabaseReference player = FirebaseDatabase.DefaultInstance.GetReference("users").Child(currentPlayerID);
         DatabaseReference oponent = FirebaseDatabase.DefaultInstance.GetReference("users").Child(opponentPlayerID);
 
@@ -136,29 +138,14 @@ public class MatchmakingManager : MonoBehaviour
         oponent.Child("current_match").SetValueAsync(uniqueMatchID);
 
     }
-    private void GetOponentId(string matchID)
+    public void ResetMatchIDs()
     {
-        FirebaseDatabase.DefaultInstance.GetReference("matches").Child(matchID).GetValueAsync().ContinueWith(task =>
-        {
-            if (task.IsFaulted)
-            {
-                Debug.LogError("Error: " + task.Exception);
-            }
-            else if (task.IsCompleted)
-            {
-                DataSnapshot snapshot = task.Result;
-                string opponentID = "";
-                foreach (DataSnapshot childSnapshot in snapshot.Children)
-                {
-                    if (childSnapshot.Key != currentPlayerID)
-                    {
-                        opponentID = childSnapshot.Key;
-                        break;
-                    }
-                }
-                Debug.Log("Opponent ID: " + opponentID);
-            }
-        });
+        DatabaseReference player = FirebaseDatabase.DefaultInstance.GetReference("users").Child(currentPlayerID);
+        DatabaseReference oponent = FirebaseDatabase.DefaultInstance.GetReference("users").Child(currentOpponentID);
+
+        player.Child("current_match").SetValueAsync("");
+        oponent.Child("current_match").SetValueAsync("");
+        currentOpponentID = "";
     }
     private void OnApplicationQuit()
     {
@@ -169,16 +156,21 @@ public class MatchmakingManager : MonoBehaviour
             lookingForMatchRef.ChildChanged -= HandleLookingForMatchAdded;
             isSubscribed = false;
         }
+        ExitMatch();
         lookingForMatchRef.Child(currentPlayerID).RemoveValueAsync();
     }
     public void ExitMatch()
     {
-        DatabaseReference MatchRef = reference.Child("matches").Child(currentMatchID);
-        MatchRef.RemoveValueAsync();
-        OnMatchExit?.Invoke();
+        if(currentMatchID != "")
+        {
+            DatabaseReference MatchRef = reference.Child("matches").Child(currentMatchID);
+            MatchRef.RemoveValueAsync();
+            OnMatchExit?.Invoke();
+        }
     }
     private void HandleGameExit(object sender, ChildChangedEventArgs args)
     {
+        ExitMatch();
         OnMatchExit?.Invoke();
     }
 }
